@@ -1,0 +1,12 @@
+services:
+  mysql:
+    image: mysql:8
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: parking
+    ports:
+      - "3306:3306"
+
+  simulator:
+    image: cfontes0estapar/garage-sim:1.0.0
+    network_mode: host
