@@ -1,4 +1,6 @@
 package com.toyoda.parking.estapar.dto.request
 
-data class RevenueRequestDTO(val date: String,
-                             val sector: String)
+import com.fasterxml.jackson.annotation.JsonProperty
+
+data class RevenueRequestDTO(@JsonProperty("date")   val date: String,
+                             @JsonProperty("sector") val sector: String)
