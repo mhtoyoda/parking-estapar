@@ -22,18 +22,30 @@ class GarageInitService(
 
     @PostConstruct
     fun init() {
-        log.info("Buscando configuração da garagem...")
-        val config = restTemplate.getForObject("$simulatorUrl/garage", GarageConfigDTO::class.java)
-            ?: throw IllegalStateException("Resposta vazia do simulador")
+        val maxAttempts = 5
+        val delayMs = 3_000L
 
-        config.garage.map { s ->
-            Sector(sector = s.sector, basePrice = s.basePrice, maxCapacity = s.maxCapacity)
-        }.let { sectorRepository.saveAll(it) }
+        for (attempt in 1..maxAttempts) {
+            try {
+                log.info("Buscando configuração da garagem (tentativa $attempt/$maxAttempts)...")
+                val config = restTemplate.getForObject("$simulatorUrl/garage", GarageConfigDTO::class.java)
+                    ?: throw IllegalStateException("Resposta vazia do simulador")
 
-        config.spots.map { sp ->
-            Spot(id = sp.id, sector = sp.sector, lat = sp.lat, lng = sp.lng)
-        }.let { spotRepository.saveAll(it) }
+                config.garage.map { s ->
+                    Sector(sector = s.sector, basePrice = s.basePrice, maxCapacity = s.maxCapacity)
+                }.let { sectorRepository.saveAll(it) }
 
-        log.info("Garagem inicializada: ${config.garage.size} setores, ${config.spots.size} vagas")
+                config.spots.map { sp ->
+                    Spot(id = sp.id, sector = sp.sector, lat = sp.lat, lng = sp.lng)
+                }.let { spotRepository.saveAll(it) }
+
+                log.info("Garagem inicializada: ${config.garage.size} setores, ${config.spots.size} vagas")
+                return
+            } catch (e: Exception) {
+                if (attempt == maxAttempts) throw IllegalStateException("Falha ao conectar ao simulador após $maxAttempts tentativas", e)
+                log.warn("Simulador indisponível: ${e.message}. Aguardando ${delayMs}ms...")
+                Thread.sleep(delayMs)
+            }
+        }
     }
 }

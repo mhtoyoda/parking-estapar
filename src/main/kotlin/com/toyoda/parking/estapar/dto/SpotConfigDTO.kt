@@ -1,6 +1,8 @@
 package com.toyoda.parking.estapar.dto
 
-data class SpotConfigDTO( val id: Long,
-                          val sector: String,
-                          val lat: Double,
-                          val lng: Double)
+import com.fasterxml.jackson.annotation.JsonProperty
+
+data class SpotConfigDTO(@JsonProperty("id")     val id: Long,
+                         @JsonProperty("sector") val sector: String,
+                         @JsonProperty("lat")    val lat: Double,
+                         @JsonProperty("lng")    val lng: Double)
